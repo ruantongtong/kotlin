@@ -33,6 +33,7 @@ import org.jetbrains.kotlin.idea.core.OptionalParametersHelper
 import org.jetbrains.kotlin.idea.core.resolveCandidates
 import org.jetbrains.kotlin.idea.resolve.ResolutionFacade
 import org.jetbrains.kotlin.idea.util.ShadowedDeclarationsFilter
+import org.jetbrains.kotlin.lexer.KtSingleValueToken
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.load.java.NULLABILITY_ANNOTATIONS
 import org.jetbrains.kotlin.load.java.sam.SamAdapterDescriptor
@@ -62,7 +63,7 @@ class KotlinFunctionParameterInfoHandler :
 
     override fun getActualParameters(arguments: KtValueArgumentList) = arguments.arguments.toTypedArray()
 
-    override fun getActualParametersRBraceType() = KtTokens.RPAR
+    override fun getActualParametersRBraceType(): KtSingleValueToken = KtTokens.RPAR
 
     override fun getArgumentListAllowedParentClasses() = setOf(KtCallElement::class.java)
 }
@@ -72,7 +73,7 @@ class KotlinLambdaParameterInfoHandler :
 
     override fun getActualParameters(lambdaArgument: KtLambdaArgument) = arrayOf(lambdaArgument)
 
-    override fun getActualParametersRBraceType() = KtTokens.RBRACE
+    override fun getActualParametersRBraceType(): KtSingleValueToken = KtTokens.RBRACE
 
     override fun getArgumentListAllowedParentClasses() = setOf(KtLambdaArgument::class.java)
 
@@ -90,7 +91,7 @@ class KotlinArrayAccessParameterInfoHandler :
     override fun getActualParameters(containerNode: KtContainerNode): Array<out KtExpression> =
         containerNode.allChildren.filterIsInstance<KtExpression>().toList().toTypedArray()
 
-    override fun getActualParametersRBraceType() = KtTokens.RBRACKET
+    override fun getActualParametersRBraceType(): KtSingleValueToken = KtTokens.RBRACKET
 }
 
 abstract class KotlinParameterInfoWithCallHandlerBase<TArgumentList : KtElement, TArgument : KtElement>(
@@ -107,7 +108,7 @@ abstract class KotlinParameterInfoWithCallHandlerBase<TArgumentList : KtElement,
         return (argumentList.parent as? KtElement)?.getCall(bindingContext)
     }
 
-    override fun getActualParameterDelimiterType() = KtTokens.COMMA
+    override fun getActualParameterDelimiterType(): KtSingleValueToken = KtTokens.COMMA
 
     override fun getArgListStopSearchClasses() = setOf(KtNamedFunction::class.java, KtVariableDeclaration::class.java)
 
