@@ -53,7 +53,7 @@ interface MemberTemplate {
     /** Specifies which platforms this member template should be generated for */
     fun platforms(vararg platforms: Platform)
 
-    fun instantiate(platforms: List<Platform> = Platform.values): Sequence<MemberBuilder>
+    fun instantiate(targets: List<KotlinTarget> = KotlinTarget.values): Sequence<MemberBuilder>
 
     /** Registers parameterless member builder function */
     fun builder(b: MemberBuildAction)
@@ -105,13 +105,14 @@ abstract class MemberTemplateDefinition<TParam> : MemberTemplate {
             } ?: this
 
 
-    override fun instantiate(platforms: List<Platform>): Sequence<MemberBuilder> {
-        val resultingPlatforms = platforms.intersect(targetPlatforms)
-        val specificPlatforms by lazy { resultingPlatforms - Platform.Common }
+    override fun instantiate(targets: List<KotlinTarget>): Sequence<MemberBuilder> {
+        val resultingTargets = targets.filter { it.platform in targetPlatforms }
+        val resultingPlatforms = resultingTargets.map { it.platform }.distinct()
+        val specificPlatforms by lazy { resultingTargets - KotlinTarget.Common }
 
         fun platformMemberBuilders(family: Family, p: TParam) =
                 if (Platform.Common in targetPlatforms) {
-                    val commonMemberBuilder = createMemberBuilder(Platform.Common, family, p)
+                    val commonMemberBuilder = createMemberBuilder(KotlinTarget.Common, family, p)
                     mutableListOf<MemberBuilder>().also { builders ->
                         if (Platform.Common in resultingPlatforms) builders.add(commonMemberBuilder)
                         if (commonMemberBuilder.hasPlatformSpecializations) {
@@ -121,7 +122,7 @@ abstract class MemberTemplateDefinition<TParam> : MemberTemplate {
                         }
                     }
                 } else {
-                    resultingPlatforms.map { createMemberBuilder(it, family, p) }
+                    resultingTargets.map { createMemberBuilder(it, family, p) }
                 }
 
         return parametrize()
@@ -130,8 +131,8 @@ abstract class MemberTemplateDefinition<TParam> : MemberTemplate {
                 .flatten()
     }
 
-    private fun createMemberBuilder(platform: Platform, family: Family, p: TParam): MemberBuilder {
-        return MemberBuilder(targetPlatforms, platform, family).also { builder ->
+    private fun createMemberBuilder(target: KotlinTarget, family: Family, p: TParam): MemberBuilder {
+        return MemberBuilder(targetPlatforms, target, family).also { builder ->
             for (action in buildActions) {
                 when (action) {
                     is BuildAction.Generic -> action(builder)
