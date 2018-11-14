@@ -17,8 +17,10 @@
 @file:Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER", "CANNOT_OVERRIDE_INVISIBLE_MEMBER")
 package kotlin.internal.jdk8
 
+import java.lang.reflect.Method
 import java.util.regex.MatchResult
 import java.util.regex.Matcher
+import java.util.regex.Pattern
 import kotlin.internal.PlatformImplementations
 import kotlin.internal.jdk7.JDK7PlatformImplementations
 import kotlin.random.Random
@@ -27,14 +29,31 @@ import kotlin.random.jdk8.PlatformThreadLocalRandom
 internal open class JDK8PlatformImplementations : JDK7PlatformImplementations() {
 
     override fun getMatchResultNamedGroup(matchResult: MatchResult, name: String): MatchGroup? {
-        val matcher = matchResult as? Matcher ?: throw UnsupportedOperationException("Retrieving groups by name is not supported on this platform.")
+        val group = getMatchResultNamedGroupIfSupported(matchResult, name)
+        if (group is MatchGroup?) return group
+        throw UnsupportedOperationException("Retrieving groups by name is not supported on this platform.")
+    }
 
-        val range = matcher.start(name)..matcher.end(name) - 1
+    override fun getMatchResultNamedGroupIfSupported(matchResult: MatchResult, name: String): Any? {
+        val matcher = matchResult as? Matcher ?: return Any()
+
+        val range = matcher.start(name) until matcher.end(name)
         return if (range.start >= 0)
             MatchGroup(matcher.group(name), range)
         else
             null
     }
+
+    private val namedGroupsAccessor: Method? by lazy {
+        try {
+            Pattern::class.java.getDeclaredMethod("namedGroups").apply { isAccessible = true }
+        } catch (e: Exception) {
+            if (e is NoSuchMethodException || e is SecurityException) null else throw e
+        }
+    }
+
+    override fun getPatternNamedGroupsMap(pattern: Pattern): Map<String, Int>? =
+        namedGroupsAccessor?.invoke(pattern) as Map<String, Int>?
 
     override fun defaultPlatformRandom(): Random = PlatformThreadLocalRandom()
 

@@ -21,8 +21,8 @@ import kotlin.test.*
 
 class RegexTest {
     @Test fun namedGroups() {
-        val input = "1a 2b 3c"
-        val regex = "(?<num>\\d)(?<liter>\\w)".toRegex()
+        val input = "1a 2b 3"
+        val regex = "(?<num>\\d)(?<liter>\\w)?".toRegex()
 
         val matches = regex.findAll(input).toList()
         assertTrue(matches.all { it.groups.size == 3 })
@@ -38,5 +38,12 @@ class RegexTest {
         assertEquals(3..3, m2.groups["num"]?.range)
         assertEquals("b", m2.groups["liter"]?.value)
         assertEquals(4..4, m2.groups["liter"]?.range)
+
+        val m3 = matches[2]
+        assertNull(m3.groups["liter"])
+
+        assertFailsWith<IllegalArgumentException> { m2.groups["unknown_group"] }.let { e ->
+            assertTrue("unknown_group" in e.message!!)
+        }
     }
 }

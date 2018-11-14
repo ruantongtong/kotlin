@@ -6,6 +6,7 @@
 package kotlin.internal
 
 import java.util.regex.MatchResult
+import java.util.regex.Pattern
 import kotlin.random.FallbackThreadLocalRandom
 import kotlin.random.Random
 
@@ -15,9 +16,27 @@ internal open class PlatformImplementations {
         // do nothing
     }
 
+    /**
+     * Returns a named group match, if it has been matched, or `null`, if it hasn't been matched.
+     * @throws UnsupportedOperationException if getting groups by name is not supported
+     * @throws IllegalArgumentException if no group with such name exists in regex pattern
+     */
     public open fun getMatchResultNamedGroup(matchResult: MatchResult, name: String): MatchGroup? {
         throw UnsupportedOperationException("Retrieving groups by name is not supported on this platform.")
     }
+
+    /**
+     * Returns a named group match, if it has been matched, or `null`, if it hasn't been matched.
+     * Returns an instance of `Any`, if getting groups by name is not supported
+     * @throws IllegalArgumentException if no group with such name exists in regex pattern
+     */
+    public open fun getMatchResultNamedGroupIfSupported(matchResult: MatchResult, name: String): Any? = Any()
+
+    /**
+     * Returns a map from group names to group indices of the given pattern or null, if getting groups by name is not supported
+     */
+    public open fun getPatternNamedGroupsMap(pattern: Pattern): Map<String, Int>? = null
+
 
     public open fun defaultPlatformRandom(): Random = FallbackThreadLocalRandom()
 }

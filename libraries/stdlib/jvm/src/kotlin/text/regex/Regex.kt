@@ -282,7 +282,21 @@ private class MatcherMatchResult(private val matcher: Matcher, private val input
                 null
         }
 
+        private var namedGroups: Map<String, Int>? = null
+
         override fun get(name: String): MatchGroup? {
+            // try non-throwing JDK 8 cast method first if supported and implemented
+            val group = IMPLEMENTATIONS.getMatchResultNamedGroupIfSupported(matchResult, name)
+            if (group is MatchGroup?) return group
+
+            if (namedGroups == null) namedGroups = IMPLEMENTATIONS.getPatternNamedGroupsMap(matcher.pattern())
+
+            namedGroups?.let {
+                val groupIndex = it[name] ?: throw IllegalArgumentException("Regex doesn't have a group with name '$name'")
+                return get(groupIndex)
+            }
+
+            // fallback to throwing JDK 8 cast method as a last resort
             return IMPLEMENTATIONS.getMatchResultNamedGroup(matchResult, name)
         }
     }
