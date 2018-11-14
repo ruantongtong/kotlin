@@ -44,6 +44,7 @@ val compilerModules: Array<String> by rootProject.extra
 compilerModules.forEach { evaluationDependsOn(it) }
 
 val compiledModulesSources = compilerModules.map {
+    println(it)
     project(it).mainSourceSet.allSource
 }
 

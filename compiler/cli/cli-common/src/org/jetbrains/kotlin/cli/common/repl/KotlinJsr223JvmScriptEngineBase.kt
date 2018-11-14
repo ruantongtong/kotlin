@@ -48,12 +48,12 @@ abstract class KotlinJsr223JvmScriptEngineBase(protected val myFactory: ScriptEn
     protected abstract fun createState(lock: ReentrantReadWriteLock = ReentrantReadWriteLock()): IReplStageState<*>
 
     protected fun getCurrentState(context: ScriptContext) =
-            context.getBindings(ScriptContext.ENGINE_SCOPE)
-                    .getOrPut(KOTLIN_SCRIPT_STATE_BINDINGS_KEY, {
-                        // TODO: check why createBinding is not called on creating default context, so the engine is not set
-                        context.getBindings(ScriptContext.ENGINE_SCOPE).put(KOTLIN_SCRIPT_ENGINE_BINDINGS_KEY, this@KotlinJsr223JvmScriptEngineBase)
-                        createState()
-                    }) as IReplStageState<*>
+        context.getBindings(ScriptContext.ENGINE_SCOPE)
+            .getOrPut(KOTLIN_SCRIPT_STATE_BINDINGS_KEY, {
+                // TODO: check why createBinding is not called on creating default context, so the engine is not set
+                context.getBindings(ScriptContext.ENGINE_SCOPE).put(KOTLIN_SCRIPT_ENGINE_BINDINGS_KEY, this@KotlinJsr223JvmScriptEngineBase)
+                createState()
+            }) as IReplStageState<*>
 
     open fun overrideScriptArgs(context: ScriptContext): ScriptArgsWithTypes? = null
 
@@ -108,5 +108,5 @@ abstract class KotlinJsr223JvmScriptEngineBase(protected val myFactory: ScriptEn
 }
 
 private fun ReplCompileResult.Error.locationString() =
-        if (location == null) ""
-        else " at ${location.line}:${location.column}"
+    if (location == null) ""
+    else " at ${location.line}:${location.column}"
