@@ -60,6 +60,8 @@ interface KotlinCompilerDaemonClient {
         profiler: Profiler = DummyProfiler()
     ): Int
 
+    fun getOrCreateClientFlagFile(daemonOptions: DaemonOptions): File
+
     fun createCompResults(): CompilationResultsAsync
 
     fun main(vararg args: String)

@@ -16,9 +16,11 @@
 
 package org.jetbrains.kotlin.cli.common.repl
 
+import kotlinx.coroutines.runBlocking
 import java.io.Reader
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import javax.script.*
+import org.jetbrains.kotlin.cli.common.repl.experimental.ReplCompiler
 
 const val KOTLIN_SCRIPT_STATE_BINDINGS_KEY = "kotlin.script.state"
 const val KOTLIN_SCRIPT_ENGINE_BINDINGS_KEY = "kotlin.script.engine"
@@ -72,7 +74,7 @@ abstract class KotlinJsr223JvmScriptEngineBase(protected val myFactory: ScriptEn
         val codeLine = nextCodeLine(context, script)
         val state = getCurrentState(context)
 
-        val result = replCompiler.compile(state, codeLine)
+        val result = runBlocking { replCompiler.compile(state, codeLine) }
         val compiled = when (result) {
             is ReplCompileResult.Error -> throw ScriptException("Error${result.locationString()}: ${result.message}")
             is ReplCompileResult.Incomplete -> throw ScriptException("error: incomplete code")
