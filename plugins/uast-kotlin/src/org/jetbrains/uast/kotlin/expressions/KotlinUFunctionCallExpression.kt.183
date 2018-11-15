@@ -173,8 +173,8 @@ class KotlinUFunctionCallExpression(
                 .asIterable()
         }
 
-        val methodName = methodName ?: contextElement.calleeExpression?.text ?: return emptyList()
-        val calleeExpression = contextElement.calleeExpression ?: return emptyList()
+        val calleeExpression = contextElement.calleeExpression as? KtReferenceExpression ?: return emptyList()
+        val methodName = methodName ?: calleeExpression.text ?: return emptyList()
         val variants = getReferenceVariants(calleeExpression, methodName)
         return variants.flatMap {
             when (val source = it.toSource()) {

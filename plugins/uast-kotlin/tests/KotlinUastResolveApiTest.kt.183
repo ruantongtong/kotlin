@@ -56,7 +56,7 @@ class KotlinUastResolveApiTest : KotlinLightCodeInsightFixtureTestCase() {
             main.findElementByText<UElement>("foo").uastParent as KotlinUFunctionCallExpression
 
         val resolvedDeclaration = functionCall.multiResolve()
-        val resolvedDeclarationsStrings = resolvedDeclaration.map { it.element?.text ?: "<null>" }
+        val resolvedDeclarationsStrings = resolvedDeclaration.map { it.element.text ?: "<null>" }
         assertContainsElements(
             resolvedDeclarationsStrings,
             "fun foo(): Int = TODO()",
@@ -86,7 +86,7 @@ class KotlinUastResolveApiTest : KotlinLightCodeInsightFixtureTestCase() {
         val functionCall = main.findElementByText<UElement>("print").uastParent as KotlinUFunctionCallExpression
 
         val resolvedDeclaration = functionCall.multiResolve()
-        val resolvedDeclarationsStrings = resolvedDeclaration.map { it.element?.text ?: "<null>" }
+        val resolvedDeclarationsStrings = resolvedDeclaration.map { it.element.text ?: "<null>" }
         assertContainsElements(
             resolvedDeclarationsStrings,
             "public void print(char c) { /* compiled code */ }",
@@ -131,7 +131,7 @@ class KotlinUastResolveApiTest : KotlinLightCodeInsightFixtureTestCase() {
         val functionCall = main.findElementByText<UElement>("setParameter").uastParent as KotlinUFunctionCallExpression
 
         val resolvedDeclaration = functionCall.multiResolve()
-        val resolvedDeclarationsStrings = resolvedDeclaration.map { it.element?.text ?: "<null>" }
+        val resolvedDeclarationsStrings = resolvedDeclaration.map { it.element.text ?: "<null>" }
         assertContainsElements(
             resolvedDeclarationsStrings,
             "public void setParameter(String name, int value){}",
@@ -173,7 +173,7 @@ class KotlinUastResolveApiTest : KotlinLightCodeInsightFixtureTestCase() {
                 .findElementByText<UElement>("foo").uastParent as KotlinUFunctionCallExpression
 
         val resolvedDeclaration = functionCall.multiResolve()
-        val resolvedDeclarationsStrings = resolvedDeclaration.map { it.element?.text ?: "<null>" }
+        val resolvedDeclarationsStrings = resolvedDeclaration.map { it.element.text ?: "<null>" }
         assertContainsElements(
             resolvedDeclarationsStrings,
             "fun foo(): Int = TODO()",
@@ -221,4 +221,38 @@ class KotlinUastResolveApiTest : KotlinLightCodeInsightFixtureTestCase() {
         TestCase.assertEquals(PsiType.getTypeByName("MyClass", project, file.resolveScope), functionCall.getExpressionType())
     }
 
+
+    fun testMultiInvokableObjectResolve() {
+        val file = myFixture.configureByText(
+            "s.kt", """
+                object Foo {
+
+                    operator fun invoke(i: Int): Int = TODO()
+                    operator fun invoke(i1: Int, i2: Int): Int = TODO()
+                    operator fun invoke(i1: Int, i2: Int, i3: Int): Int = TODO()
+
+                }
+
+                fun main(args: Array<String>) {
+                    Foo(
+                }
+            """
+        )
+
+        val functionCall =
+            file.toUElement()!!.findElementByTextFromPsi<UElement>("main").getContainingUMethod()!!
+                .findElementByText<UElement>("Foo").uastParent as KotlinUFunctionCallExpression
+
+        val resolvedDeclaration = functionCall.multiResolve()
+        val resolvedDeclarationsStrings = resolvedDeclaration.map { it.element.text ?: "<null>" }
+        assertContainsElements(
+            resolvedDeclarationsStrings,
+            "operator fun invoke(i: Int): Int = TODO()",
+            "operator fun invoke(i1: Int, i2: Int): Int = TODO()",
+            "operator fun invoke(i1: Int, i2: Int, i3: Int): Int = TODO()"
+        )
+        TestCase.assertEquals(PsiType.INT, functionCall.getExpressionType())
+    }
+
 }
+
