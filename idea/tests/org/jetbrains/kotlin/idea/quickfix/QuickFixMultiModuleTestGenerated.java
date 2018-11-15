@@ -254,6 +254,41 @@ public class QuickFixMultiModuleTestGenerated extends AbstractQuickFixMultiModul
         runTest("idea/testData/multiModuleQuickFix/enum/");
     }
 
+    @TestMetadata("expectAnnotation")
+    public void testExpectAnnotation() throws Exception {
+        runTest("idea/testData/multiModuleQuickFix/expectAnnotation/");
+    }
+
+    @TestMetadata("expectClass")
+    public void testExpectClass() throws Exception {
+        runTest("idea/testData/multiModuleQuickFix/expectClass/");
+    }
+
+    @TestMetadata("expectClassFunction")
+    public void testExpectClassFunction() throws Exception {
+        runTest("idea/testData/multiModuleQuickFix/expectClassFunction/");
+    }
+
+    @TestMetadata("expectClassPropertyInConstructor")
+    public void testExpectClassPropertyInConstructor() throws Exception {
+        runTest("idea/testData/multiModuleQuickFix/expectClassPropertyInConstructor/");
+    }
+
+    @TestMetadata("expectEnum")
+    public void testExpectEnum() throws Exception {
+        runTest("idea/testData/multiModuleQuickFix/expectEnum/");
+    }
+
+    @TestMetadata("expectFunction")
+    public void testExpectFunction() throws Exception {
+        runTest("idea/testData/multiModuleQuickFix/expectFunction/");
+    }
+
+    @TestMetadata("expectProperty")
+    public void testExpectProperty() throws Exception {
+        runTest("idea/testData/multiModuleQuickFix/expectProperty/");
+    }
+
     @TestMetadata("function")
     public void testFunction() throws Exception {
         runTest("idea/testData/multiModuleQuickFix/function/");

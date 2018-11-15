@@ -31,18 +31,17 @@ import org.jetbrains.kotlin.diagnostics.DiagnosticFactory
 import org.jetbrains.kotlin.diagnostics.Errors
 import org.jetbrains.kotlin.idea.caches.project.ModuleSourceInfo
 import org.jetbrains.kotlin.idea.caches.resolve.analyzeWithContent
-import org.jetbrains.kotlin.idea.core.*
+import org.jetbrains.kotlin.idea.core.ShortenReferences
 import org.jetbrains.kotlin.idea.core.overrideImplement.OverrideMemberChooserObject.BodyType.EMPTY_OR_TEMPLATE
 import org.jetbrains.kotlin.idea.core.overrideImplement.OverrideMemberChooserObject.BodyType.NO_BODY
 import org.jetbrains.kotlin.idea.core.overrideImplement.OverrideMemberChooserObject.Companion.create
 import org.jetbrains.kotlin.idea.core.overrideImplement.generateActualMember
 import org.jetbrains.kotlin.idea.core.overrideImplement.generateTopLevelActual
+import org.jetbrains.kotlin.idea.core.toDescriptor
 import org.jetbrains.kotlin.idea.quickfix.KotlinQuickFixAction
 import org.jetbrains.kotlin.idea.quickfix.KotlinSingleIntentionActionFactory
-import org.jetbrains.kotlin.idea.refactoring.createKotlinFile
 import org.jetbrains.kotlin.idea.util.actualsForExpected
 import org.jetbrains.kotlin.idea.util.application.executeWriteCommand
-import org.jetbrains.kotlin.idea.util.application.runWriteAction
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.*
@@ -115,32 +114,7 @@ sealed class CreateActualFix<out D : KtNamedDeclaration>(
         val expectedDir = declaration.containingFile.containingDirectory
         val expectedPackage = JavaDirectoryService.getInstance().getPackage(expectedDir)
 
-        val actualDirectory = findOrCreateDirectoryForPackage(
-            actualModule, expectedPackage?.qualifiedName ?: ""
-        ) ?: return null
-        return runWriteAction {
-            val fileName = "$name.kt"
-            val existingFile = actualDirectory.findFile(fileName)
-            val packageDirective = declaration.containingKtFile.packageDirective
-            val packageName =
-                if (packageDirective?.packageNameExpression == null) actualDirectory.getPackage()?.qualifiedName
-                else packageDirective.fqName.asString()
-            if (existingFile is KtFile) {
-                val existingPackageDirective = existingFile.packageDirective
-                if (existingFile.declarations.isNotEmpty() &&
-                    existingPackageDirective?.fqName != packageDirective?.fqName
-                ) {
-                    val newName = KotlinNameSuggester.suggestNameByName(name) {
-                        actualDirectory.findFile("$it.kt") == null
-                    } + ".kt"
-                    createKotlinFile(newName, actualDirectory, packageName)
-                } else {
-                    existingFile
-                }
-            } else {
-                createKotlinFile(fileName, actualDirectory, packageName)
-            }
-        }
+        return createFileForPackage(actualModule, name, expectedPackage, declaration.containingKtFile.packageDirective)
     }
 
     companion object : KotlinSingleIntentionActionFactory() {
@@ -242,16 +216,7 @@ internal fun KtPsiFactory.generateClassOrObjectByExpectedClass(
             }
         }
 
-    val expectedText = expectedClass.text
-    val actualClass = if (expectedClass is KtObjectDeclaration) {
-        if (expectedClass.isCompanion()) {
-            createCompanionObject(expectedText)
-        } else {
-            createObject(expectedText)
-        }
-    } else {
-        createClass(expectedText)
-    }
+    val actualClass = createClassCopyByText(expectedClass)
     actualClass.declarations.forEach {
         if (it.exists()) {
             it.delete()
