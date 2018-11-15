@@ -34,6 +34,19 @@ class RegexJVMTest {
         assertEquals(4..4, m2.groups[2]?.range)
     }
 
+    @Test fun matchSequenceWithLookbehind() {
+        val input = "123_000 456 789"
+        val pattern = "(?<=^|\\s)\\d+".toRegex()
+
+        val matches = pattern.findAll(input)
+        val values = matches.map { it.value }
+        val expected = listOf("123", "456", "789")
+        assertEquals(expected, values.toList())
+        assertEquals(expected, values.toList(), "running match sequence second time")
+        assertEquals(expected.drop(1), pattern.findAll(input, startIndex = 3).map { it.value }.toList())
+
+        assertEquals(listOf(0..2, 8..10, 12..14), matches.map { it.range }.toList())
+    }
 
     private fun compareRegex(expected: Regex, actual: Regex) = compare(expected, actual) {
         propertyEquals(Regex::pattern)

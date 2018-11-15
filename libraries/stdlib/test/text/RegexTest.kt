@@ -57,7 +57,7 @@ class RegexTest {
 
     @Test fun matchSequence() {
         val input = "123 456 789"
-        val pattern = "(?<=^|\\s)\\d+".toRegex()
+        val pattern = "\\d+".toRegex()
 
         val matches = pattern.findAll(input)
         val values = matches.map { it.value }
